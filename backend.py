@@ -4,6 +4,11 @@ create new instance variable of error method
 if setOption == False, return error message
 """
 
+onOff = {
+    True: "On",
+    False: "Off"
+}
+
 class SmartPlug:
     def __init__(self, consumptionRate: int) -> None:
         self.switchedOn = False
@@ -24,10 +29,8 @@ class SmartPlug:
         # else:
         #     return f"Rate of {rate} is invalid " # can i do this??? 
 
-    def __str__(self) -> str:
-        output = "Smartplug Details:\n"
-        output += f"- Status: {self.getSwitchedOn()}\n"
-        output += f"- Consumption Rate: {self.getConsumptionRate()}\n"
+    def __str__(self) -> str:        
+        output = f"Plug: {onOff[self.switchedOn]}, Consumption: {self.getConsumptionRate()}"
         return output
 
 def testSmartPlug():
@@ -66,9 +69,7 @@ class SmartFridge:
             self.temperature = temperature
 
     def __str__(self) -> str:
-        output = "Smart Fridge Details:\n"
-        output += f"- Status: {self.getSwitchedOn()}\n"
-        output += f"- Temperature: {self.getTemperature()}°C\n"
+        output = f"Fridge: {onOff[self.switchedOn]}, Temperature: {self.getTemperature()}"#°C"
         return output
 
 def testDevice():
@@ -87,28 +88,30 @@ class SmartHome:
     def __init__(self) -> None:
         self.devices = []
 
-    def getDevices(self) -> list: # prints the str of object, is this right? or does it just want list of names
-        for device in self.devices:
-            print(device, end="")
+    def getDevices(self) -> list:
+        return self.devices
 
-    def getDevicesAt(self, index: int) -> str: # does same as ^ but for specified device
-        return self.devices[index - 1]
+    def getDevicesAt(self, index: int) -> str:
+        return self.devices[index]
+    
+    def removeDeviceAt(self, index: int):
+        self.devices.remove(self.devices[index])
 
     def addDevice(self, device: object) -> None:
         self.devices.append(device)
 
     def toggleSwitch(self, index: int) -> None:
-        device = self.devices[index - 1]
+        device = self.devices[index]
         device.toggleSwitch()
 
     def turnOnAll(self) -> None:
         for device in self.devices:
-            if device.getSwitchedOn() == False:
+            if not device.getSwitchedOn():
                 device.toggleSwitch()
 
     def turnOffAll(self) -> None:
         for device in self.devices:
-            if device.getSwitchedOn() == True:
+            if device.getSwitchedOn():
                 device.toggleSwitch()
 
     def __str__(self) -> str:
