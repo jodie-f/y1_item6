@@ -94,7 +94,7 @@ class SmartHome:
     def getDevicesAt(self, index: int) -> str:
         return self.devices[index]
     
-    def removeDeviceAt(self, index: int):
+    def removeDeviceAt(self, index: int) -> None:
         self.devices.remove(self.devices[index])
 
     def addDevice(self, device: object) -> None:
