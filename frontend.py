@@ -1,7 +1,7 @@
 from backend import SmartPlug, SmartFridge, SmartHome
 from tkinter import *
 
-def setUpHome():
+def setUpHome() -> SmartHome:
     devices = []
     home = SmartHome()
     print("Available Smart Devices:")
@@ -27,7 +27,7 @@ def setUpHome():
     
     return home
 
-def checkDevice(device: str):
+def checkDevice(device: str) -> bool:
     validInputs = ["smart plug", "plug", "smart fridge", "fridge"]
     if device.lower() in validInputs:
         return False
@@ -35,12 +35,12 @@ def checkDevice(device: str):
         print("Input is invalid, please choose from the available Smart Devices")
         return True
 
-def isSmartPlug(device: str):
+def isSmartPlug(device: str) -> bool:
     validInputs = ["smart plug", "plug"]
     if device.lower() in validInputs:
         return True
     
-def smartPlugRate():
+def smartPlugRate() -> int:
     while True:
         rate = input("Consumption rate: ")
         if not rate.isdigit():
@@ -152,12 +152,12 @@ class SmartHomeSystem:
         self.homeDevices.turnOffAll()
         self.createWidgets()
 
-    def btnToggleStatus(self, index: int):
+    def btnToggleStatus(self, index: int) -> None:
         self.homeDevices.toggleSwitch(index-1)
         self.createWidgets()
     
     # ========================================= EDIT BUTTONS =========================================
-    def editWin(self, index):
+    def editWin(self, index: int) -> None:
         self.deleteAllEditWidgets()
         device = self.homeDevices.getDevicesAt(index-1)
 
@@ -197,7 +197,7 @@ class SmartHomeSystem:
         lblUpdate.grid(row=0, column=0, padx=PADDING, pady=PADDING)
         self.editWidgets.append(lblUpdate)
 
-    def updateOption(self, index, win):
+    def updateOption(self, index: int, win: Toplevel) -> None:
         device = self.homeDevices.getDevicesAt(index-1)        
         try:
             newValue = int(self.newValue.get())
@@ -221,7 +221,7 @@ class SmartHomeSystem:
             widget.destroy()
         self.editWidgets = []
 
-    def errorMessage(self, error):
+    def errorMessage(self, error: str) -> None:
         msgs = {
             "digit": "Input is not a number!",
             "range": "Input is out of range!"
@@ -245,7 +245,7 @@ class SmartHomeSystem:
         btnError.grid(row=1, column=1, padx=PADDING, pady=PADDING)
 
     # ========================================= DELETE BUTTON =========================================
-    def deleteDevice(self, index):
+    def deleteDevice(self, index: int) -> None:
         self.homeDevices.removeDeviceAt(index-1)
         self.createWidgets()
 
@@ -269,13 +269,13 @@ class SmartHomeSystem:
         )
         opmDevices.grid(row=0, column=1, padx=PADDING, pady=PADDING)
         
-    def addWidgetPicker(self, selected, addWin):
+    def addWidgetPicker(self, selected: str, addWin: Toplevel) -> None:
         if isSmartPlug(selected):
             self.plugWidgets(addWin)
         else:
             self.fridgeWidgets(addWin) 
 
-    def plugWidgets(self, addWin):
+    def plugWidgets(self, addWin: Toplevel) -> None:
         self.deleteAddWidgets()
         self.consumptionRate.set(0)
 
@@ -295,7 +295,7 @@ class SmartHomeSystem:
         btnAdd.grid(row=2, column=1, padx=PADDING, pady=PADDING, columnspan=2)
         self.addWidgets.append(btnAdd)
 
-    def addPlug(self, addWin):
+    def addPlug(self, addWin: Toplevel) -> None:
         try:
             consumptionRate = self.consumptionRate.get()
             if 0 <= consumptionRate <= 150:
@@ -311,7 +311,7 @@ class SmartHomeSystem:
         self.createWidgets()
         addWin.destroy()
 
-    def fridgeWidgets(self, addWin):
+    def fridgeWidgets(self, addWin: Toplevel) -> None:
         self.deleteAddWidgets()
         btnAdd = Button(
             addWin,
@@ -321,7 +321,7 @@ class SmartHomeSystem:
         btnAdd.grid(row=1, column=1, padx=PADDING, pady=PADDING, columnspan=2)
         self.addWidgets.append(btnAdd)
 
-    def addFridge(self, addWin):
+    def addFridge(self, addWin: Toplevel) -> None:
         self.homeDevices.addDevice(SmartFridge())
         self.createWidgets()
         addWin.destroy()
