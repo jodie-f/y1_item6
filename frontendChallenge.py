@@ -165,7 +165,14 @@ class SmartHomeSystem:
         newWin.title("Edit Device")
 
         # FOR PLUG
-        entryValue = Entry(newWin, width=10, textvariable=self.newValue)
+        scaleRate = Scale(
+            newWin,
+            from_=0, 
+            to=150,
+            orient=HORIZONTAL,
+            variable=self.newValue
+        )
+        self.addWidgets.append(scaleRate)
 
         # FOR FRIDGE
         temps = [1, 3, 5]
@@ -188,29 +195,23 @@ class SmartHomeSystem:
             opmValue.grid(row=0, column=1, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
             self.editWidgets.append(opmValue)
         else:
-            lblText="Consumption Rate (0-150):"
-            self.newValue.set(device.getConsumptionRate())
-            entryValue.grid(row=0, column=1, padx=PADDING, pady=PADDING) # CREATING ENTRY
-            self.editWidgets.append(entryValue)
+            lblText="Consumption Rate:"
+            scaleRate.set(device.getConsumptionRate())
+            scaleRate.grid(row=0, column=1, padx=PADDING, pady=PADDING) # CREATING SLIDER
+            self.editWidgets.append(scaleRate)
         
         lblUpdate = Label(newWin, text=lblText)
         lblUpdate.grid(row=0, column=0, padx=PADDING, pady=PADDING)
         self.editWidgets.append(lblUpdate)
 
     def updateOption(self, index: int, win: Toplevel) -> None:
-        device = self.homeDevices.getDevicesAt(index-1)        
-        try:
-            newValue = int(self.newValue.get())
-        except TclError:
-            self.errorMessage("digit")
-            return None
+        device = self.homeDevices.getDevicesAt(index-1)
+        
+        newValue = int(self.newValue.get())
 
         if isinstance(device, SmartFridge):
             device.setTemperature(newValue)
         else:
-            if newValue < 0 or newValue > 150:
-                self.errorMessage("range")
-                return None
             device.setConsumptionRate(newValue)
 
         self.createWidgets()
@@ -275,26 +276,37 @@ class SmartHomeSystem:
         else:
             self.fridgeWidgets(addWin) 
 
-    def plugWidgets(self, addWin: Toplevel) -> None:
+    def plugWidgets(self, addWin: Toplevel) -> None: # SCALE (SLIDER) VERSION!!!!
         self.deleteAddWidgets()
         self.consumptionRate.set(0)
 
-        lblRate = Label(addWin, text="Consumption Rate (0-150):")
+        lblRate = Label(addWin, text="Consumption Rate:")
         lblRate.grid(row=1, column=0, padx=PADDING, pady=PADDING)
         self.addWidgets.append(lblRate)
 
-        entryRate = Entry(addWin, textvariable=self.consumptionRate)
-        entryRate.grid(row=1, column=1, padx=PADDING, pady=PADDING)
-        self.addWidgets.append(entryRate)
+        scaleRate = Scale(
+            addWin,
+            from_=0, 
+            to=150,
+            orient=HORIZONTAL,
+            command=self.getSlider,
+            variable=self.consumptionRate
+        )
+        scaleRate.grid(row=1, column=1, padx=PADDING, pady=PADDING)
+        self.addWidgets.append(scaleRate)
 
         btnAdd = Button(
             addWin,
             text="Add Device",
+            width=25,
             command=lambda addWin=addWin: self.addPlug(addWin)
         )
-        btnAdd.grid(row=2, column=1, padx=PADDING, pady=PADDING, columnspan=2)
+        btnAdd.grid(row=2, column=0, padx=PADDING, pady=PADDING, columnspan=2)
         self.addWidgets.append(btnAdd)
-
+    
+    def getSlider(self, value: IntVar) -> None:
+        self.consumptionRate.set(int(value))
+        
     def addPlug(self, addWin: Toplevel) -> None:
         try:
             consumptionRate = self.consumptionRate.get()
