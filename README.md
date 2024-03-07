@@ -1,2 +1,2 @@
 smarthome cw
-\ndeadline: 11/03/2024
+deadline: 11/03/2024
