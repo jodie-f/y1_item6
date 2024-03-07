@@ -6,21 +6,21 @@ def setUpHome() -> SmartHome:
     home = SmartHome()
     print("Available Smart Devices:")
     print("- Smart Plug \n- Smart Fridge")
-    # print("Please input five devices you want in your Smart Home:")
+    print("Please input five devices you want in your Smart Home:")
 
-    # for i in range(5):
-    #     validDevice = True
-    #     while validDevice:
-    #         device = input(f"{i+1}. ")
-    #         validDevice = checkDevice(device)
+    for i in range(5):
+        validDevice = True
+        while validDevice:
+            device = input(f"{i+1}. ")
+            validDevice = checkDevice(device)
 
-    #     if isSmartPlug(device):
-    #         rate = smartPlugRate()
-    #         devices.append(SmartPlug(rate))
-    #     else:
-    #         devices.append(SmartFridge())
+        if isSmartPlug(device):
+            rate = smartPlugRate()
+            devices.append(SmartPlug(rate))
+        else:
+            devices.append(SmartFridge())
             
-    devices = [SmartPlug(90), SmartPlug(80), SmartPlug(70), SmartFridge(), SmartFridge()] # EDIT OUT LATER
+    # devices = [SmartPlug(90), SmartPlug(80), SmartPlug(70), SmartFridge(), SmartFridge()] # EDIT OUT LATER
 
     for device in devices:
         home.addDevice(device)
@@ -75,6 +75,19 @@ class SmartHomeSystem:
         self.addWidgets = []
         self.newDevice = StringVar()
 
+        # ICONS
+        self.plug = PhotoImage(file='item_6\Challenge\plug.png')
+        self.imgPlug = self.plug.subsample(15)
+
+        self.fridge = PhotoImage(file=r'item_6\Challenge\fridge.png')
+        self.imgFridge = self.fridge.subsample(15)
+        
+        self.power = PhotoImage(file='item_6\Challenge\power.png')
+        self.imgPower = self.power.subsample(70)
+        
+        self.delete = PhotoImage(file='item_6\Challenge\delete.png')
+        self.imgDelete = self.delete.subsample(70)
+
     def createWidgets(self):
         self.deleteAllHomeWidgets()
         self.deviceLabels = []
@@ -87,7 +100,7 @@ class SmartHomeSystem:
             width=25,
             command=self.turnOnAll
         )
-        btnOn.grid(row=0, column=0, padx=PADDING, pady=PADDING)
+        btnOn.grid(row=0, column=0, columnspan=2, padx=PADDING, pady=PADDING)
 
         btnOff = Button (
             self.mainFrame,
@@ -98,23 +111,38 @@ class SmartHomeSystem:
         btnOff.grid(row=0, column=2, columnspan=3, padx=PADDING, pady=PADDING)
 
         for i, device in enumerate(deviceList, start=1):
+            # ICONS
+            if isinstance(device, SmartPlug):
+                deviceIcon = self.imgPlug
+            elif isinstance(device, SmartFridge):
+                deviceIcon = self.imgFridge
+
+            lblDeviceIcon = Label(
+                self.mainFrame,
+                image=deviceIcon
+            )
+            lblDeviceIcon.grid(row=i, column=0, padx=PADDING, pady=PADDING)
+            self.homeDeviceWidgets.append(lblDeviceIcon)
+
             lblDeviceName = StringVar()
             self.setLabel(device, lblDeviceName)
             lblDevice = Label (
                 self.mainFrame,
+                width=25,
                 textvariable=lblDeviceName
             )
-            lblDevice.grid(row=i, column=0, padx=PADDING, pady=PADDING)
+            lblDevice.grid(row=i, column=1, padx=PADDING, pady=PADDING)
             self.deviceLabels.append(lblDeviceName)
             self.homeDeviceWidgets.append(lblDevice)
 
             btnToggle = Button (
                 self.mainFrame, 
                 text="Toggle", 
-                width=7,
+                # width=7,
+                image=self.imgPower,
                 command=lambda index=i-1: self.btnToggleStatus(index)
             )
-            btnToggle.grid(row=i, column=1, padx=PADDING, pady=PADDING)
+            btnToggle.grid(row=i, column=2, padx=PADDING, pady=PADDING)
             self.homeDeviceWidgets.append(btnToggle)
 
             if isinstance(device, SmartPlug):
@@ -128,7 +156,7 @@ class SmartHomeSystem:
                     command=lambda value, i=i-1: self.updateOption(i, value)
                 )
                 scaleRate.set(device.getConsumptionRate())
-                scaleRate.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING SLIDER
+                scaleRate.grid(row=i, column=3, padx=PADDING, pady=PADDING) # CREATING SLIDER
                 self.homeDeviceWidgets.append(scaleRate)
 
             elif isinstance(device, SmartFridge):
@@ -142,31 +170,18 @@ class SmartHomeSystem:
                     *temps,
                     command=lambda selected, i=i-1: self.updateOption(i, selected)
                 )
-                opmValue.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
+                opmValue.grid(row=i, column=3, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
                 opmValue.config(width=18)
                 self.homeDeviceWidgets.append(opmValue)
-
-
-                # spnTemp = Spinbox(
-                #     self.mainFrame, 
-                #     textvariable=deviceTemp,
-                #     from_=1,
-                #     to=5, 
-                #     increment=2, 
-                #     width=15, 
-                #     state="readonly",
-                #     command=lambda i=i-1, selected=deviceTemp :self.updateOption(i, selected)
-                # )
-                # spnTemp.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
-                # self.homeDeviceWidgets.append(spnTemp)
 
             btnDelete = Button (
                 self.mainFrame, 
                 text="Delete", 
-                width=7,
+                # width=7,
+                image=self.imgDelete,
                 command=lambda index=i-1: self.deleteDevice(index)
             )
-            btnDelete.grid(row=i, column=3, padx=PADDING, pady=PADDING)
+            btnDelete.grid(row=i, column=4, padx=PADDING, pady=PADDING)
             self.homeDeviceWidgets.append(btnDelete)
 
         btnAdd = Button (
@@ -175,11 +190,8 @@ class SmartHomeSystem:
             width=25,
             command=self.addWin
         )
-        btnAdd.grid(row=len(deviceList)+1, column=0, padx=PADDING, pady=PADDING)
+        btnAdd.grid(row=len(deviceList)+1, column=0, columnspan=2, padx=PADDING, pady=PADDING)
         self.homeDeviceWidgets.append(btnAdd)
-
-        # print("devices",self.homeDevices.getDevices())
-        # print("labels",self.deviceLabels)
         
     def deleteAllHomeWidgets(self): # RESETS WIDGETS
         for widget in self.homeDeviceWidgets:
@@ -287,7 +299,7 @@ class SmartHomeSystem:
             width=25,
             command=lambda addWin=addWin: self.addPlug(addWin)
         )
-        btnAdd.grid(row=2, column=0, padx=PADDING, pady=PADDING, columnspan=2)
+        btnAdd.grid(row=2, column=0, columnspan=2, padx=PADDING, pady=PADDING)
         self.addWidgets.append(btnAdd)
     
     def getSlider(self, value: IntVar) -> None:
@@ -308,7 +320,7 @@ class SmartHomeSystem:
             text="Add Device",
             command=lambda: self.addFridge(addWin)
         )
-        btnAdd.grid(row=1, column=1, padx=PADDING, pady=PADDING, columnspan=2)
+        btnAdd.grid(row=1, column=1, columnspan=2, padx=PADDING, pady=PADDING)
         self.addWidgets.append(btnAdd)
 
     def addFridge(self, addWin: Toplevel) -> None:
