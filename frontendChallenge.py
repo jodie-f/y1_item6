@@ -6,21 +6,21 @@ def setUpHome() -> SmartHome:
     home = SmartHome()
     print("Available Smart Devices:")
     print("- Smart Plug \n- Smart Fridge")
-    print("Please input five devices you want in your Smart Home:")
+    # print("Please input five devices you want in your Smart Home:")
 
-    for i in range(5):
-        validDevice = True
-        while validDevice:
-            device = input(f"{i+1}. ")
-            validDevice = checkDevice(device)
+    # for i in range(5):
+    #     validDevice = True
+    #     while validDevice:
+    #         device = input(f"{i+1}. ")
+    #         validDevice = checkDevice(device)
 
-        if isSmartPlug(device):
-            rate = smartPlugRate()
-            devices.append(SmartPlug(rate))
-        else:
-            devices.append(SmartFridge())
+    #     if isSmartPlug(device):
+    #         rate = smartPlugRate()
+    #         devices.append(SmartPlug(rate))
+    #     else:
+    #         devices.append(SmartFridge())
             
-    # devices = [SmartPlug(90), SmartPlug(80), SmartPlug(70), SmartFridge(), SmartFridge()] # EDIT OUT LATER
+    devices = [SmartPlug(90), SmartPlug(80), SmartPlug(70), SmartFridge(), SmartFridge()] # EDIT OUT LATER
 
     for device in devices:
         home.addDevice(device)
@@ -62,21 +62,18 @@ class SmartHomeSystem:
         self.mainFrame = Frame(self.win)
         self.mainFrame.grid(row=0, column=0, padx=5, pady=5)
 
-        self.homeDevices = homeDevices # smart home obj
+        self.homeDevices = homeDevices # SMART HOME OBJ
         self.homeDeviceWidgets = []
 
         # MAIN SCREEN
         self.deviceLabels = []
-        self.consumptionRate = IntVar() # for added device
+        self.consumptionRate = IntVar()
         self.consumptionRate.set(0)
         self.temperature = StringVar()
 
-        # EDIT SCREEN
-        # self.editWidgets = []
+        # ADD SCREEN
+        self.addWidgets = []
         self.newDevice = StringVar()
-
-        self.addWidgets = [] # FOR ADD SCREEN
-
 
     def createWidgets(self):
         self.deleteAllHomeWidgets()
@@ -98,7 +95,7 @@ class SmartHomeSystem:
             width=25,
             command=self.turnOffAll
         )
-        btnOff.grid(row=0, column=1, columnspan=3, padx=PADDING, pady=PADDING)
+        btnOff.grid(row=0, column=2, columnspan=3, padx=PADDING, pady=PADDING)
 
         for i, device in enumerate(deviceList, start=1):
             lblDeviceName = StringVar()
@@ -126,7 +123,8 @@ class SmartHomeSystem:
                     from_=0, 
                     to=150,
                     orient=HORIZONTAL,
-                    variable=IntVar(), 
+                    variable=IntVar(),
+                    length=150, 
                     command=lambda value, i=i-1: self.updateOption(i, value)
                 )
                 scaleRate.set(device.getConsumptionRate())
@@ -134,16 +132,33 @@ class SmartHomeSystem:
                 self.homeDeviceWidgets.append(scaleRate)
 
             elif isinstance(device, SmartFridge):
+                deviceTemp = IntVar()
+                deviceTemp.set(device.getTemperature())
+
                 temps = [1, 3, 5]
                 opmValue = OptionMenu(
                     self.mainFrame,
-                    self.temperature,
+                    deviceTemp,
                     *temps,
                     command=lambda selected, i=i-1: self.updateOption(i, selected)
                 )
-                # self.newValue.set(device.getTemperature())
                 opmValue.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
+                opmValue.config(width=18)
                 self.homeDeviceWidgets.append(opmValue)
+
+
+                # spnTemp = Spinbox(
+                #     self.mainFrame, 
+                #     textvariable=deviceTemp,
+                #     from_=1,
+                #     to=5, 
+                #     increment=2, 
+                #     width=15, 
+                #     state="readonly",
+                #     command=lambda i=i-1, selected=deviceTemp :self.updateOption(i, selected)
+                # )
+                # spnTemp.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
+                # self.homeDeviceWidgets.append(spnTemp)
 
             btnDelete = Button (
                 self.mainFrame, 
@@ -162,13 +177,16 @@ class SmartHomeSystem:
         )
         btnAdd.grid(row=len(deviceList)+1, column=0, padx=PADDING, pady=PADDING)
         self.homeDeviceWidgets.append(btnAdd)
+
+        # print("devices",self.homeDevices.getDevices())
+        # print("labels",self.deviceLabels)
         
     def deleteAllHomeWidgets(self): # RESETS WIDGETS
         for widget in self.homeDeviceWidgets:
             widget.destroy()
         self.homeDeviceWidgets = []
 
-    # ========================================= EDIT LABEL =========================================
+    # ========================================= LABEL =========================================
     def setLabel(self, device: object, label: Label): # SETS LABELS ON ROOT WIDGETS
         onOff = {True:"On", False:"Off"}        
         status = onOff[device.getSwitchedOn()]
@@ -183,26 +201,22 @@ class SmartHomeSystem:
     # ========================================= TOGGLE BUTTONS =========================================
     def turnOnAll(self):
         self.homeDevices.turnOnAll()
-        # self.createWidgets()
         for i, device in enumerate(self.homeDevices.getDevices()):
             self.setLabel(device, self.deviceLabels[i])
     
     def turnOffAll(self):
         self.homeDevices.turnOffAll()
-        # self.createWidgets()
         for i, device in enumerate(self.homeDevices.getDevices()):
             self.setLabel(device, self.deviceLabels[i])
 
     def btnToggleStatus(self, index: int) -> None:
         self.homeDevices.toggleSwitch(index)
-        # self.createWidgets()
         self.setLabel(self.homeDevices.getDevicesAt(index), self.deviceLabels[index])
     
-    # ========================================= EDIT BUTTONS =========================================
-    def updateOption(self, index: int, value: int) -> None: #, win: Toplevel) -> None:
+    # ========================================= UPDATE VALUE =========================================
+    def updateOption(self, index: int, value: int) -> None:
         device = self.homeDevices.getDevicesAt(index)
         
-        # newValue = int(self.newValue.get())
         newValue = int(value)
 
         if isinstance(device, SmartPlug):
@@ -245,7 +259,7 @@ class SmartHomeSystem:
         else:
             self.fridgeWidgets(addWin) 
 
-    def plugWidgets(self, addWin: Toplevel) -> None: # SCALE (SLIDER) VERSION!!!!
+    def plugWidgets(self, addWin: Toplevel) -> None:
         self.deleteAddWidgets()
 
         addConsumptionRate = IntVar()
@@ -261,6 +275,7 @@ class SmartHomeSystem:
             to=150,
             orient=HORIZONTAL,
             variable=addConsumptionRate,
+            length=150,
             command=self.getSlider
         )
         scaleRate.grid(row=1, column=1, padx=PADDING, pady=PADDING)
@@ -287,6 +302,7 @@ class SmartHomeSystem:
 
     def fridgeWidgets(self, addWin: Toplevel) -> None:
         self.deleteAddWidgets()
+
         btnAdd = Button(
             addWin,
             text="Add Device",
