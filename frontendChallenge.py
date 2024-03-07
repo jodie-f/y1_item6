@@ -1,4 +1,4 @@
-from backendChallenge import SmartPlug, SmartFridge, SmartHome
+from backend import SmartPlug, SmartFridge, SmartHome
 from tkinter import *
 
 def setUpHome() -> SmartHome:
@@ -64,17 +64,23 @@ class SmartHomeSystem:
 
         self.homeDevices = homeDevices # smart home obj
         self.homeDeviceWidgets = []
-        self.fridgeTemp = StringVar()
 
-        self.editWidgets = []
-        self.newValue = IntVar()
-        self.newDevice = StringVar()
-        self.addWidgets = []
+        # MAIN SCREEN
+        self.deviceLabels = []
         self.consumptionRate = IntVar() # for added device
         self.consumptionRate.set(0)
+        self.temperature = StringVar()
+
+        # EDIT SCREEN
+        # self.editWidgets = []
+        self.newDevice = StringVar()
+
+        self.addWidgets = [] # FOR ADD SCREEN
+
 
     def createWidgets(self):
         self.deleteAllHomeWidgets()
+        self.deviceLabels = []
 
         deviceList = self.homeDevices.getDevices()
 
@@ -95,37 +101,56 @@ class SmartHomeSystem:
         btnOff.grid(row=0, column=1, columnspan=3, padx=PADDING, pady=PADDING)
 
         for i, device in enumerate(deviceList, start=1):
+            lblDeviceName = StringVar()
+            self.setLabel(device, lblDeviceName)
             lblDevice = Label (
                 self.mainFrame,
-                text=device
+                textvariable=lblDeviceName
             )
             lblDevice.grid(row=i, column=0, padx=PADDING, pady=PADDING)
+            self.deviceLabels.append(lblDeviceName)
             self.homeDeviceWidgets.append(lblDevice)
 
             btnToggle = Button (
                 self.mainFrame, 
                 text="Toggle", 
                 width=7,
-                command=lambda index=i: self.btnToggleStatus(index)
-                )
+                command=lambda index=i-1: self.btnToggleStatus(index)
+            )
             btnToggle.grid(row=i, column=1, padx=PADDING, pady=PADDING)
             self.homeDeviceWidgets.append(btnToggle)
 
-            btnEdit = Button (
-                self.mainFrame, 
-                text="Edit", 
-                width=6,
-                command=lambda index = i: self.editWin(index)
+            if isinstance(device, SmartPlug):
+                scaleRate = Scale(
+                    self.mainFrame,
+                    from_=0, 
+                    to=150,
+                    orient=HORIZONTAL,
+                    variable=IntVar(), 
+                    command=lambda value, i=i-1: self.updateOption(i, value)
                 )
-            btnEdit.grid(row=i, column=2, padx=PADDING, pady=PADDING)
-            self.homeDeviceWidgets.append(btnEdit)
+                scaleRate.set(device.getConsumptionRate())
+                scaleRate.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING SLIDER
+                self.homeDeviceWidgets.append(scaleRate)
+
+            elif isinstance(device, SmartFridge):
+                temps = [1, 3, 5]
+                opmValue = OptionMenu(
+                    self.mainFrame,
+                    self.temperature,
+                    *temps,
+                    command=lambda selected, i=i-1: self.updateOption(i, selected)
+                )
+                # self.newValue.set(device.getTemperature())
+                opmValue.grid(row=i, column=2, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
+                self.homeDeviceWidgets.append(opmValue)
 
             btnDelete = Button (
                 self.mainFrame, 
                 text="Delete", 
                 width=7,
-                command=lambda index=i: self.deleteDevice(index)
-                )
+                command=lambda index=i-1: self.deleteDevice(index)
+            )
             btnDelete.grid(row=i, column=3, padx=PADDING, pady=PADDING)
             self.homeDeviceWidgets.append(btnDelete)
 
@@ -143,111 +168,54 @@ class SmartHomeSystem:
             widget.destroy()
         self.homeDeviceWidgets = []
 
+    # ========================================= EDIT LABEL =========================================
+    def setLabel(self, device: object, label: Label): # SETS LABELS ON ROOT WIDGETS
+        onOff = {True:"On", False:"Off"}        
+        status = onOff[device.getSwitchedOn()]
+        
+        if isinstance(device, SmartPlug):
+            self.consumptionRate.set(device.getConsumptionRate())
+            label.set(f"Plug: {status}, Consumption: {self.consumptionRate.get()}")
+        elif isinstance(device, SmartFridge):
+            self.temperature.set(device.getTemperature())
+            label.set(f"Fridge: {status}, Temperature: {self.temperature.get()}")
+
     # ========================================= TOGGLE BUTTONS =========================================
     def turnOnAll(self):
         self.homeDevices.turnOnAll()
-        self.createWidgets()
+        # self.createWidgets()
+        for i, device in enumerate(self.homeDevices.getDevices()):
+            self.setLabel(device, self.deviceLabels[i])
     
     def turnOffAll(self):
         self.homeDevices.turnOffAll()
-        self.createWidgets()
+        # self.createWidgets()
+        for i, device in enumerate(self.homeDevices.getDevices()):
+            self.setLabel(device, self.deviceLabels[i])
 
     def btnToggleStatus(self, index: int) -> None:
-        self.homeDevices.toggleSwitch(index-1)
-        self.createWidgets()
+        self.homeDevices.toggleSwitch(index)
+        # self.createWidgets()
+        self.setLabel(self.homeDevices.getDevicesAt(index), self.deviceLabels[index])
     
     # ========================================= EDIT BUTTONS =========================================
-    def editWin(self, index: int) -> None:
-        self.deleteAllEditWidgets()
-        device = self.homeDevices.getDevicesAt(index-1)
-
-        newWin = Toplevel(self.win)
-        newWin.title("Edit Device")
-
-        # FOR PLUG
-        scaleRate = Scale(
-            newWin,
-            from_=0, 
-            to=150,
-            orient=HORIZONTAL,
-            variable=self.newValue
-        )
-        self.addWidgets.append(scaleRate)
-
-        # FOR FRIDGE
-        temps = [1, 3, 5]
-        opmValue = OptionMenu(
-            newWin,
-            self.newValue,
-            *temps
-        )
-
-        btnUpdate = Button(
-            newWin, 
-            text="Update Device", 
-            command=lambda index=index, win=newWin : self.updateOption(index, win))
-        btnUpdate.grid(row=1, column=0, columnspan=2, padx=PADDING, pady=PADDING)
-        self.editWidgets.append(btnUpdate)
-
-        if isinstance(device, SmartFridge):
-            lblText="Temperature:"
-            self.newValue.set(device.getTemperature())
-            opmValue.grid(row=0, column=1, padx=PADDING, pady=PADDING) # CREATING OPTION MENU
-            self.editWidgets.append(opmValue)
-        else:
-            lblText="Consumption Rate:"
-            scaleRate.set(device.getConsumptionRate())
-            scaleRate.grid(row=0, column=1, padx=PADDING, pady=PADDING) # CREATING SLIDER
-            self.editWidgets.append(scaleRate)
+    def updateOption(self, index: int, value: int) -> None: #, win: Toplevel) -> None:
+        device = self.homeDevices.getDevicesAt(index)
         
-        lblUpdate = Label(newWin, text=lblText)
-        lblUpdate.grid(row=0, column=0, padx=PADDING, pady=PADDING)
-        self.editWidgets.append(lblUpdate)
+        # newValue = int(self.newValue.get())
+        newValue = int(value)
 
-    def updateOption(self, index: int, win: Toplevel) -> None:
-        device = self.homeDevices.getDevicesAt(index-1)
-        
-        newValue = int(self.newValue.get())
-
-        if isinstance(device, SmartFridge):
-            device.setTemperature(newValue)
-        else:
+        if isinstance(device, SmartPlug):
             device.setConsumptionRate(newValue)
+        elif isinstance(device, SmartFridge):
+            device.setTemperature(newValue)
 
-        self.createWidgets()
-        win.destroy()
-
-    def deleteAllEditWidgets(self): # RESETS WIDGETS
-        for widget in self.editWidgets:
-            widget.destroy()
-        self.editWidgets = []
-
-    def errorMessage(self, error: str) -> None:
-        msgs = {
-            "digit": "Input is not a number!",
-            "range": "Input is out of range!"
-        }
-
-        errorWin = Toplevel(self.win)
-        errorWin.title("ERROR !!!")
-
-        lblError = Label(
-            errorWin, 
-            text=msgs[error],
-        )
-        lblError.grid(row=0, column=1, padx=PADDING, pady=PADDING)
-
-        btnError = Button(
-            errorWin,
-            text="Okay",
-            width=10,
-            command=errorWin.destroy
-        )
-        btnError.grid(row=1, column=1, padx=PADDING, pady=PADDING)
+        self.setLabel(device, self.deviceLabels[index])
 
     # ========================================= DELETE BUTTON =========================================
     def deleteDevice(self, index: int) -> None:
-        self.homeDevices.removeDeviceAt(index-1)
+        self.homeDevices.removeDeviceAt(index)
+        del self.deviceLabels[index]
         self.createWidgets()
 
     # ========================================= ADD BUTTON =========================================
@@ -255,6 +223,7 @@ class SmartHomeSystem:
         newWin = Toplevel(self.win)
         newWin.title("Add Device")
 
+        self.addWidgets = []
         self.plugWidgets(newWin)
 
         lblNewDevice = Label(newWin, text="Device:")
@@ -278,7 +247,9 @@ class SmartHomeSystem:
 
     def plugWidgets(self, addWin: Toplevel) -> None: # SCALE (SLIDER) VERSION!!!!
         self.deleteAddWidgets()
-        self.consumptionRate.set(0)
+
+        addConsumptionRate = IntVar()
+        addConsumptionRate.set(0)
 
         lblRate = Label(addWin, text="Consumption Rate:")
         lblRate.grid(row=1, column=0, padx=PADDING, pady=PADDING)
@@ -289,8 +260,8 @@ class SmartHomeSystem:
             from_=0, 
             to=150,
             orient=HORIZONTAL,
-            command=self.getSlider,
-            variable=self.consumptionRate
+            variable=addConsumptionRate,
+            command=self.getSlider
         )
         scaleRate.grid(row=1, column=1, padx=PADDING, pady=PADDING)
         self.addWidgets.append(scaleRate)
@@ -307,18 +278,9 @@ class SmartHomeSystem:
     def getSlider(self, value: IntVar) -> None:
         self.consumptionRate.set(int(value))
         
-    def addPlug(self, addWin: Toplevel) -> None:
-        try:
-            consumptionRate = self.consumptionRate.get()
-            if 0 <= consumptionRate <= 150:
-                self.homeDevices.addDevice(SmartPlug(consumptionRate))
-        except TclError:
-            self.errorMessage("digit")
-            return None
-        else:
-            if consumptionRate < 0 or consumptionRate > 150:
-                self.errorMessage("range")
-                return None
+    def addPlug(self, addWin: Toplevel) -> None:        
+        consumptionRate = self.consumptionRate.get()
+        self.homeDevices.addDevice(SmartPlug(consumptionRate))
 
         self.createWidgets()
         addWin.destroy()
