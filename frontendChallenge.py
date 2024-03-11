@@ -45,7 +45,7 @@ def smartPlugRate() -> int:
         rate = input("Consumption rate: ")
         if not rate.isdigit():
             print("Input is not a number, please input a rate between 0 and 150")
-        elif int(rate) <= 0 or int(rate) >= 150:
+        elif int(rate) < 0 or int(rate) > 150:
             print("Rate must be between 0 and 150. Please try again")
         else:
             return int(rate)
@@ -76,16 +76,20 @@ class SmartHomeSystem:
         self.newDevice = StringVar()
 
         # ICONS
-        self.plug = PhotoImage(file='item_6\Challenge\plug.png')
+        self.plug = PhotoImage(file='Challenge\plug.png')
+        # self.plug = PhotoImage(file='plug.png')
         self.imgPlug = self.plug.subsample(15)
 
-        self.fridge = PhotoImage(file=r'item_6\Challenge\fridge.png')
+        self.fridge = PhotoImage(file=r'Challenge\fridge.png')
+        # self.fridge = PhotoImage(file=r'fridge.png')
         self.imgFridge = self.fridge.subsample(15)
         
-        self.power = PhotoImage(file='item_6\Challenge\power.png')
+        self.power = PhotoImage(file='Challenge\power.png')
+        # self.power = PhotoImage(file='power.png')
         self.imgPower = self.power.subsample(70)
         
-        self.delete = PhotoImage(file='item_6\Challenge\delete.png')
+        self.delete = PhotoImage(file='Challenge\delete.png')
+        # self.delete = PhotoImage(file='delete.png')
         self.imgDelete = self.delete.subsample(70)
 
     def createWidgets(self):
@@ -138,7 +142,6 @@ class SmartHomeSystem:
             btnToggle = Button (
                 self.mainFrame, 
                 text="Toggle", 
-                # width=7,
                 image=self.imgPower,
                 command=lambda index=i-1: self.btnToggleStatus(index)
             )
@@ -177,7 +180,6 @@ class SmartHomeSystem:
             btnDelete = Button (
                 self.mainFrame, 
                 text="Delete", 
-                # width=7,
                 image=self.imgDelete,
                 command=lambda index=i-1: self.deleteDevice(index)
             )
