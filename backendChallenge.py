@@ -1,29 +1,18 @@
-"""
-about validation section, return false if out of range
-create new instance variable of error method
-if setOption == False, return error message
-"""
-
 onOff = {
     True: "On",
     False: "Off"
 }
 
-class SmartDevice:
-    def __init__(self) -> None:
+class SmartPlug:
+    def __init__(self, consumptionRate: int) -> None:
         self.switchedOn = False
-    
+        self.consumptionRate = consumptionRate
+
     def toggleSwitch(self) -> None:
         self.switchedOn = not self.switchedOn
-    
+
     def getSwitchedOn(self) -> bool:
         return self.switchedOn
-
-
-class SmartPlug(SmartDevice):
-    def __init__(self, consumptionRate: int) -> None:
-        super().__init__()
-        self.consumptionRate = consumptionRate
 
     def getConsumptionRate(self) -> int:
         return self.consumptionRate
@@ -31,6 +20,8 @@ class SmartPlug(SmartDevice):
     def setConsumptionRate(self, rate: int) -> None:
         if 0 <= rate <= 150:
             self.consumptionRate = rate
+        # else:
+        #     return f"Rate of {rate} is invalid " # can i do this??? 
 
     def __str__(self) -> str:        
         output = f"Plug: {onOff[self.switchedOn]}, Consumption: {self.getConsumptionRate()}"
@@ -52,10 +43,16 @@ def testSmartPlug():
 # smartfridge
 # temperatures: 1, 3, 5 (C) -> default = 3
 
-class SmartFridge(SmartDevice):
+class SmartFridge:
     def __init__(self) -> None:
-        super().__init__()
-        self.temperature = 3
+        self.switchedOn = False
+        self.temperature = 3    
+    
+    def toggleSwitch(self) -> None:
+        self.switchedOn = not self.switchedOn
+
+    def getSwitchedOn(self) -> bool:
+        return self.switchedOn
 
     def getTemperature(self) -> int:
         return self.temperature
