@@ -3,16 +3,21 @@ onOff = {
     False: "Off"
 }
 
-class SmartPlug:
-    def __init__(self, consumptionRate: int) -> None:
+class SmartDevice:
+    def __init__(self) -> None:
         self.switchedOn = False
-        self.consumptionRate = consumptionRate
-
+    
     def toggleSwitch(self) -> None:
         self.switchedOn = not self.switchedOn
-
+    
     def getSwitchedOn(self) -> bool:
         return self.switchedOn
+
+
+class SmartPlug(SmartDevice):
+    def __init__(self, consumptionRate: int) -> None:
+        super().__init__()
+        self.consumptionRate = consumptionRate
 
     def getConsumptionRate(self) -> int:
         return self.consumptionRate
@@ -20,8 +25,6 @@ class SmartPlug:
     def setConsumptionRate(self, rate: int) -> None:
         if 0 <= rate <= 150:
             self.consumptionRate = rate
-        # else:
-        #     return f"Rate of {rate} is invalid " # can i do this??? 
 
     def __str__(self) -> str:        
         output = f"Plug: {onOff[self.switchedOn]}, Consumption: {self.getConsumptionRate()}"
@@ -43,16 +46,10 @@ def testSmartPlug():
 # smartfridge
 # temperatures: 1, 3, 5 (C) -> default = 3
 
-class SmartFridge:
+class SmartFridge(SmartDevice):
     def __init__(self) -> None:
-        self.switchedOn = False
-        self.temperature = 3    
-    
-    def toggleSwitch(self) -> None:
-        self.switchedOn = not self.switchedOn
-
-    def getSwitchedOn(self) -> bool:
-        return self.switchedOn
+        super().__init__()
+        self.temperature = 3
 
     def getTemperature(self) -> int:
         return self.temperature
